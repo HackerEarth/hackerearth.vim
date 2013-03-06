@@ -1,6 +1,6 @@
-" ct <C-R>theck for python
+" check for python
 if !has('python')
-    echoerr "HackerEarth: Plugin needs to be compiled wuth python support."
+    echoerr "HackerEarth: Plugin needs to be compiled with python support."
     finish
 endif
 
