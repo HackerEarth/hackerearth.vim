@@ -22,7 +22,7 @@ setlocal wildmode=longest
 " Helper functions
 "
 
-" Function that opens or navigates to the scratch buffer.
+" Function that opens or navigates to the output buffer.
 function! s:OutputBufferOpen(name)
     let scr_bufnum = bufnr(a:name)
     if scr_bufnum == -1
@@ -40,7 +40,7 @@ function! s:OutputBufferOpen(name)
     call s:OutputBuffer()
 endfunction
 
-" After opening the scratch buffer, this sets some properties for it.
+" After opening the output buffer, this sets some properties for it.
 function! s:OutputBuffer()
     setlocal buftype=nofile
     setlocal bufhidden=hide
@@ -82,9 +82,13 @@ class Api(object):
             response = urllib.urlopen(url, post).read()
             response = json.loads(response)
             response = self.convert(response)
-            vimi = VimInterface(response, self.arg.output_file)
-            vimi.showoutput()
-            vimi.saveoutput()
+            output = self.output(response)
+            vimi = VimInterface()
+            vimi.load(self.arg.output_file)
+            vimi.delete()
+            vimi.append(output)
+            if(self.arg.output_file!=OUTPUT_BUFFER):
+                vimi.save()
         except IOError, e:
             print e
 
@@ -100,7 +104,36 @@ class Api(object):
     def input(self):
         input = open(self.arg.input_file, 'r').read() if(self.hasinput()) else None
         return input
-                
+
+    def output(self, response):
+        output = 35*"-"+"HackerEarth"+35*"-"+"\n"
+        message = response['message']
+        if(message=="OK"):
+            output += "\nCompile status: %s" % response['compile_status'].strip()
+            
+            if(response.has_key('run_status')):
+                o = response['run_status'] 
+                status = o['status']
+                output += "\nRun status: %s" % status
+                if(status=="AC"):
+                    output += "\nOutput: %s" % o['output'].strip()
+                    output += "\nTime used: %s sec" % o['time_used']
+                    output += "\nMemory used: %s KiB" % o['memory_used']
+                if(status=="CE"):
+                    output += "\n"+o['status_detail'].strip()
+                if(status=="TLE"):
+                    output += "\nTime used: %s sec" % o['time_used']
+                    output += "\nMemory used: %s KiB" % o['memory_used']
+                if(status=="RE"):
+                    output += "\nStatus detail: %s" % o['status_detail']
+
+            output += "\nWeb link: %s" % response['web_link']
+        else:
+            output += "\nMessage: %s" % message
+            if(response['errors']!=""):
+                output += "\nErrors: %s" % response['errors'].strip()
+        return output
+               
     def timelimit(self):
         return self.arg.time_limit
 
@@ -178,58 +211,36 @@ class File(object):
 
 class VimInterface(object):
     
-    def __init__(self, output=None, output_file=OUTPUT_BUFFER):
-        self.output = output
-        self.output_file = output_file
+    def __init__(self, buff=None):
+        self.buff = buff
 
-    def loadbuffer(self):
-        if(self.output_file!=OUTPUT_BUFFER):
-            vim.command("new %s" % File.abspath(self.output_file).replace(' ','\ '))
+    def load(self, buffer_file=OUTPUT_BUFFER):
+        if(buffer_file!=OUTPUT_BUFFER):
+            vim.command("new %s" % File.abspath(buffer_file).replace(' ','\ '))
         else:
             vim.command("call s:OutputBufferOpen('%s')" % OUTPUT_BUFFER)
         buff = vim.current.buffer
-        del buff[:]
-        return buff
-     
-    def showoutput(self):
-        buff = self.loadbuffer()
-        output = self.output
-        buff[0] = 35*"-"+"HackerEarth"+35*"-"
-        buff.append("")
-        message = output['message']
-        if(message=="OK"):
-            buff.append("Web link: %s"%output['web_link'])
-            compile_status = "Compile status: %s" % output['compile_status']
-            self.appendlines(compile_status, buff)
-            
-            if(output.has_key('run_status')):
-                o = output['run_status']    
-                status = o['status']
-                buff.append("Run status: %s" % status)
-                if(status=='AC'):
-                    self.appendlines("Output: %s" % o['output'], buff)
-                    buff.append("Time used: %s sec" % o['time_used'])
-                    buff.append("Memory used: %s KiB" % o['memory_used'])
-                if(status=="CE"):
-                    self.appendlines(o['status_detail'], buff)
-                if(status=="TLE"):
-                    buff.append("Time used: %s sec" % o['time_used'])
-                    buff.append("Memory used: %s KiB" % o['memory_used'])
-                if(status=="RE"):
-                    buff.append("Status detail: %s" % o['status_detail'])
+        self.buff = buff
+
+    def append(self, string):
+        if(self.isloaded()):
+            lines = string.strip().split('\n')
+            for line in lines:
+                self.buff.append(line)
+
+    def delete(self):
+        if(self.isloaded()):
+            del self.buff[:]
+
+    def save(self):
+        vim.command("w")
+
+    def isloaded(self):
+        if(not self.buff):
+            raise Exception("Buffer not loaded.")
+            return False
         else:
-            buff.append("Message: %s" % message)
-            if(output['errors']!=""):
-                self.appendlines("Errors: %s" % output['errors'], buff)
-
-    def saveoutput(self):
-        if(self.output_file!=OUTPUT_BUFFER):
-            vim.command("w")
-
-    def appendlines(self, string, buff):
-        lines = string.strip().split('\n')
-        for line in lines:
-            buff.append(line)
+            return True
 
 class Argument(object):
     
@@ -304,8 +315,9 @@ Arguments:
 Note*: File paths can be both absolute and relative(relative to system current working directory).
 Tip*: To autocomplete file path, use space after '=' and press TAB."""
 vimi = VimInterface()
-buff = vimi.loadbuffer()
-vimi.appendlines(help_text, buff)
+vimi.load()
+vimi.delete()
+vimi.append(help_text)
 EOF
 endfunction
 
