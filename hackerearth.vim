@@ -288,23 +288,21 @@ ENDPYTHON
 function! s:Hhelp()
 python << EOF
 help_text = 35*"-"+"Help"+35*"-"+"""
-<command> <arguments>
 
-Note: comma(,) separated arguments
+Commands:
+To run: :Hrun -s=source.cpp, -i=input.txt, -o=output.txt
+To compile: :Hcompile -s=source.cpp, -i=input.txt, -o=output.txt
+For help: :Hhelp
 
-<command>:
-1) :Hrun
-2) :Hcompile    
-3) :Hhelp
+Arguments:
+-s: source file, optional; default value is currently openend file in vim
+-i: input file, optionali; give input to your programme from this file
+-o: output file, optional; use this if you want to save the output of your programme
+-t: time limit, optional
+-m: memory limit, optional
 
-<arguments>:
-1) -s=<source-file-path> default currently opened file in vim
-2) -i=<input-file-path> optional
-3) -o=<output-file-path> optional
-4) -t=<time-limit> optional
-5) -m=<memory-limit> optional
-
-Tip: use space after '=' and press TAB to autocomplete file path"""
+Note*: File paths can be both absolute and relative(relative to system current working directory).
+Tip*: To autocomplete file path, use space after '=' and press TAB."""
 vimi = VimInterface()
 buff = vimi.loadbuffer()
 vimi.appendlines(help_text, buff)
