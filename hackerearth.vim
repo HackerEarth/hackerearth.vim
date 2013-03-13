@@ -8,7 +8,7 @@ endif
 if exists("g:HackerEarthApiClientKey")
     let s:client_key = g:HackerEarthApiClientKey
 else
-    let errmsg = "You need to set client key in your vimrc file"
+    let errmsg = "HackerEarth: You need to set client key in your vimrc file"
     echoerr errmsg
     finish
 endif
