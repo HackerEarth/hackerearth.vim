@@ -50,7 +50,7 @@ endfunction
 
 python << ENDPYTHON
 
-import vim, urllib2, os
+import vim, urllib, os
 import json
 
 COMPILE_URL = "http://api.hackerearth.com/code/compile/"
