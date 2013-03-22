@@ -109,15 +109,19 @@ class Api(object):
         output = 35*"-"+"HackerEarth"+35*"-"+"\n"
         message = response['message']
         if(message=="OK"):
-            output += "\nCompile status: %s" % response['compile_status'].strip()
-            
+            compile_status = response['compile_status'].strip()
+            if(compile_status!="OK"):
+                output += "\n%s" % compile_status
+                output += "\n\nWeb link: %s" % response['web_link']
+                return output
+            output += "\nCompile Status: OK" 
             if(response.has_key('run_status')):
                 o = response['run_status'] 
                 status = o['status']
                 output += "\nRun status: %s" % status
                 if(status=="AC"):
-                    output += "\nOutput: %s" % o['output'].strip()
-                    output += "\nTime used: %s sec" % o['time_used']
+                    output += "\n\nOUTPUT\n%s" % o['output'].strip()
+                    output += "\n\nTime used: %s sec" % o['time_used']
                     output += "\nMemory used: %s KiB" % o['memory_used']
                 if(status=="CE"):
                     output += "\n"+o['status_detail'].strip()
@@ -126,8 +130,10 @@ class Api(object):
                     output += "\nMemory used: %s KiB" % o['memory_used']
                 if(status=="RE"):
                     output += "\nStatus detail: %s" % o['status_detail']
+                    if(o.has_key('output')):
+                        output += "\n\n%s\n" % o['output'].strip()
 
-            output += "\nWeb link: %s" % response['web_link']
+            output += "\n\nWeb link: %s" % response['web_link']
         else:
             output += "\nMessage: %s" % message
             if(response['errors']!=""):
