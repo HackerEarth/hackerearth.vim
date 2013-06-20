@@ -8,8 +8,7 @@ endif
 if exists("g:HackerEarthApiClientKey")
     let s:client_key = g:HackerEarthApiClientKey
 else
-    let errmsg = "HackerEarth: You need to set client key in your vimrc file"
-    echoerr errmsg
+    echoerr "HackerEarth: You need to set client key in your vimrc file."
     finish
 endif
 
@@ -48,7 +47,7 @@ function! s:OutputBuffer()
     setlocal filetype=txt
 endfunction
 
-python << ENDPYTHON
+python << EOF
 
 import vim, urllib, os
 import json
@@ -300,26 +299,27 @@ class Argument(object):
     def setaction(self, action):
         self.action = action
 
-ENDPYTHON
+EOF
 
 function! s:Hhelp()
 python << EOF
-help_text = 35*"-"+"Help"+35*"-"+"""
-
-Commands:
-To run: :Hrun -s=source.cpp, -i=input.txt, -o=output.txt
-To compile: :Hcompile -s=source.cpp, -i=input.txt, -o=output.txt
-For help: :Hhelp
-
-Arguments:
--s: source file, optional; default value is currently openend file in vim
--i: input file, optionali; give input to your programme from this file
--o: output file, optional; use this if you want to save the output of your programme
--t: time limit, optional
--m: memory limit, optional
-
-Note*: File paths can be both absolute and relative(relative to system current working directory).
-Tip*: To autocomplete file path, use space after '=' and press TAB."""
+help_text = 35*"-"+"Help"+35*"-"+"\n" + \
+            "\n" + \
+            "Commands:\n" + \
+            "To run: :Hrun -s=source.cpp, -i=input.txt, -o=output.txt\n" + \
+            "To compile: :Hcompile -s=source.cpp, -i=input.txt, -o=output.txt\n" + \
+            "\n" + \
+            "For help: :Hhelp\n" + \
+            "\n" + \
+            "Arguments:\n" + \
+            "-s: source file, optional; default value is currently openend file in vim\n" + \
+            "-i: input file, optionali; give input to your programme from this file\n" + \
+            "-o: output file, optional; use this if you want to save the output of your programme\n" + \
+            "-t: time limit, optional\n" + \
+            "-m: memory limit, optional\n" + \
+            "\n" + \
+            "Note*: File paths can be both absolute and relative(relative to system current working directory).\n" + \
+            "Tip*: To autocomplete file path, use space after '=' and press TAB."
 vimi = VimInterface()
 vimi.load()
 vimi.delete()
@@ -327,14 +327,17 @@ vimi.append(help_text)
 EOF
 endfunction
 
+" This function is called via command :Hrun and :Hcompile
 function! s:HackerEarth(action, ...)
 python << EOF
-action = vim.eval("a:action")
+action = vim.eval("a:action") # run or compile
 argslist = vim.eval("a:000")
 args = None if(not argslist) else argslist[0]
+
 arg = Argument.evalargs(args)
 arg.setaction(action)
 #print arg.printargs()
+
 if(not arg.Help):
     api = Api(arg)
     api.call()
@@ -343,10 +346,12 @@ else:
 EOF
 endfunction
 
+" commands
 command! -nargs=? -complete=file Hrun :call <SID>HackerEarth("run", <f-args>)
 command! -nargs=? -complete=file Hcompile :call <SID>HackerEarth("compile", <f-args>)
 command! -nargs=0 Hhelp :call <SID>Hhelp()
 
+" shortcuts
 map <C-h>r :Hrun<CR>
 map <C-h>c :Hcompile<CR>
 map <C-h>h :Hhelp<CR>
