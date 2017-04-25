@@ -32,8 +32,8 @@ For help:<pre>:Hhelp</pre>
 </p>
 <p>Arguments:
 <ul>
-<li>-s: source file, optional; default value is currently openend file in vim</li>
-<li>-i: input file, optionali; give input to your programme from this file</li>
+<li>-s: source file, optional; default value is currently opened file in vim</li>
+<li>-i: input file, optional; give input to your programme from this file</li>
 <li>-o: output file, optional; use this if you want to save the output of your programme</li>
 <li>-t: time limit, optional</li>
 <li>-m: memory limit, optional</li>
@@ -47,4 +47,4 @@ INFO<br>
 <ul>
 <li>Supported programming languages: C, CPP, CPP11, CLOJURE, JAVA, JAVASCRIPT, HASKELL, PERL, PHP, PYTHON, RUBY</li>
 </ul>
-<b>Note*:</b> The plugin will not work without hackerearth api client key.
+<b>Note*:</b> The plugin will not work without HackerEarth api client key.
